@@ -26,7 +26,45 @@ This system provides educational decision-support information only. It is not a 
 - Database: MongoDB, with in-memory fallback for demo mode
 - ML/logic: local JavaScript services, trained model metadata, Python severity script fallback
 
-## Setup
+## Run This Project Locally
+
+### Prerequisites
+
+Install these first:
+
+- Node.js 18 or newer
+- npm, included with Node.js
+- MongoDB Community Server, or a MongoDB Atlas connection string
+- MongoDB Compass, optional but useful for viewing saved data
+- Git
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/shashank55-byte/Healthbot.git
+cd Healthbot
+```
+
+### 2. Start MongoDB
+
+If you installed MongoDB locally, make sure the MongoDB service is running.
+
+On Windows Command Prompt:
+
+```cmd
+sc query MongoDB
+net start MongoDB
+```
+
+If MongoDB is running locally, Compass can connect with:
+
+```text
+mongodb://localhost:27017/
+```
+
+If you are using MongoDB Atlas, copy your Atlas connection string and use it in the backend `.env` file.
+
+### 3. Configure the Backend
 
 1. Install backend dependencies:
 
@@ -35,13 +73,19 @@ cd backend
 npm install
 ```
 
-2. Configure backend environment:
+2. Create the backend environment file:
 
-```bash
+```cmd
 copy .env.example .env
 ```
 
-Update `.env`:
+For PowerShell, use:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+3. Update `backend/.env`:
 
 ```env
 MONGODB_URI=mongodb://localhost:27017/healthbot
@@ -51,28 +95,75 @@ GEMINI_API_KEY=
 GEMINI_MODEL=
 ```
 
-3. Install frontend dependencies:
+`GEMINI_API_KEY` is optional. The app still works without it using local fallback guidance.
+
+### 4. Install the Frontend
+
+Open a second terminal from the project root:
 
 ```bash
-cd ../frontend
+cd frontend
 npm install
 ```
 
-4. Start backend:
+### 5. Start the App
+
+Start the backend in the backend terminal:
 
 ```bash
-cd ../backend
+cd backend
 npm run dev
 ```
 
-5. Start frontend:
+Start the frontend in the frontend terminal:
 
 ```bash
-cd ../frontend
+cd frontend
 npm run dev
 ```
 
 Open the frontend at `http://127.0.0.1:5173/` or the Vite URL shown in the terminal.
+
+The backend runs at:
+
+```text
+http://localhost:5000
+```
+
+### 6. Create Your First Account
+
+Open the app and sign up with:
+
+- your name
+- your email
+- any app password with at least 6 characters
+
+Do not use your real Gmail password. The email is only used as the app login identifier.
+
+### 7. Optional: Train the Disease Model
+
+The trained model artifact is already included. To retrain it yourself:
+
+```bash
+cd backend
+npm run train:disease-model
+```
+
+This reads the structured symptom-disease dataset and updates:
+
+```text
+backend/models/diseasePredictionModel.json
+```
+
+Restart the backend after retraining.
+
+### Troubleshooting
+
+- If Compass shows `ECONNREFUSED 127.0.0.1:27017`, MongoDB is not running or not installed as a service.
+- If signup data disappears after backend restart, MongoDB was not connected and the app used in-memory fallback.
+- If PowerShell blocks `npm`, use `npm.cmd install`, `npm.cmd run dev`, or `npm.cmd test`.
+- If port `5173` is busy, Vite will show another frontend URL in the terminal.
+- If port `5000` is busy, change `PORT` in `backend/.env`.
 
 ## Demo Workflow
 

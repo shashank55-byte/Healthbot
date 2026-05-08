@@ -1,0 +1,18 @@
+symptoms,label
+chest pain and shortness of breath,emergency
+shortness of breath,emergency
+chest pain,emergency
+difficulty breathing,emergency
+unconscious,emergency
+fever and cough,flu_like
+fever,flu_like
+cough and sore throat,flu_like
+sore throat,flu_like
+runny nose,flu_like
+headache and nausea,migraine_like
+severe headache,migraine_like
+migraine,migraine_like
+mild fatigue,unknown
+itchy skin,unknown
+stomach ache,unknown
+body ache,unknown

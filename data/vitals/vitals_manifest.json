@@ -1,0 +1,8 @@
+{
+  "name": "hypertension_dataset.csv",
+  "status": "ready",
+  "rows": 174982,
+  "features": 22,
+  "target": "Hypertension",
+  "purpose": "Improve health risk score using BP, heart rate, age, lifestyle and vitals"
+}

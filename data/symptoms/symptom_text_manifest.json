@@ -1,0 +1,7 @@
+{
+  "name": "Symptom2Disease.csv",
+  "status": "ready",
+  "rows": 1200,
+  "disease_classes": 24,
+  "purpose": "Improve natural-language symptom understanding"
+}

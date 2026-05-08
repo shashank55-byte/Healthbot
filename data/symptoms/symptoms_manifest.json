@@ -1,0 +1,20 @@
+{
+  "datasets": [
+    {
+      "name": "DiseaseAndSymptoms.csv",
+      "status": "ready",
+      "rows": 4920,
+      "disease_classes": 41,
+      "symptoms": 131,
+      "purpose": "General disease prediction from symptoms"
+    },
+    {
+      "name": "Disease precaution.csv",
+      "status": "ready",
+      "rows": 41,
+      "disease_classes": 41,
+      "symptoms": 0,
+      "purpose": "General disease prediction from symptoms"
+    }
+  ]
+}

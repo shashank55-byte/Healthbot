@@ -1,0 +1,110 @@
+{
+  "typhoid": {
+    "aliases": ["enteric fever"],
+    "symptoms": ["Persistent fever", "Weakness", "Stomach pain", "Headache", "Loss of appetite", "Constipation or diarrhea", "Cough", "Rose-colored skin spots in some people"],
+    "causes": ["Infection caused by Salmonella Typhi bacteria", "Spread through contaminated food or water", "Higher risk with unsafe sanitation or close contact with an infected person"],
+    "care_advice": ["Drink safe fluids to avoid dehydration", "Rest and monitor fever", "Eat light, hygienic food as tolerated", "Seek medical evaluation because typhoid usually needs clinician-guided treatment"],
+    "prevention": ["Drink safe or boiled water", "Wash hands before eating", "Eat freshly cooked food", "Avoid unsafe street food or unpeeled raw produce in high-risk areas", "Ask a clinician about vaccination when relevant"],
+    "red_flags": ["High or persistent fever", "Severe weakness", "Confusion", "Severe abdominal pain", "Blood in stool", "Signs of dehydration"],
+    "when_to_consult_doctor": ["Fever lasts more than 3 days", "Symptoms are worsening", "There is severe abdominal pain, confusion, dehydration, or blood in stool"]
+  },
+  "influenza": {
+    "aliases": ["flu"],
+    "symptoms": ["Fever or chills", "Cough", "Sore throat", "Runny or stuffy nose", "Muscle or body aches", "Headache", "Fatigue", "Vomiting or diarrhea in some people"],
+    "causes": ["Infection with influenza viruses", "Spread by respiratory droplets from coughing, sneezing, or close contact"],
+    "care_advice": ["Rest", "Drink fluids", "Monitor fever and breathing", "Avoid close contact with others while ill", "Use clinician advice for high-risk people or severe symptoms"],
+    "prevention": ["Annual flu vaccination when appropriate", "Hand hygiene", "Cover coughs and sneezes", "Stay home when sick", "Avoid close contact with sick people"],
+    "red_flags": ["Difficulty breathing", "Chest pain", "Confusion", "Bluish lips", "Dehydration", "Fever that is very high or not improving"],
+    "when_to_consult_doctor": ["Symptoms are severe", "Breathing is difficult", "Fever is persistent", "The person is elderly, pregnant, immunocompromised, or has chronic disease"]
+  },
+  "dengue": {
+    "aliases": ["breakbone fever"],
+    "symptoms": ["High fever", "Severe headache", "Pain behind the eyes", "Joint and muscle pain", "Rash", "Nausea or vomiting", "Fatigue"],
+    "causes": ["Dengue virus spread by infected mosquitoes"],
+    "care_advice": ["Rest", "Drink plenty of fluids", "Monitor warning signs", "Seek medical advice for suspected dengue"],
+    "prevention": ["Prevent mosquito bites", "Use repellents", "Remove standing water", "Use window screens or nets"],
+    "red_flags": ["Severe abdominal pain", "Persistent vomiting", "Bleeding gums or nose", "Blood in vomit or stool", "Severe weakness", "Restlessness", "Difficulty breathing"],
+    "when_to_consult_doctor": ["Dengue is suspected", "Fever is high", "Any bleeding, severe abdominal pain, persistent vomiting, or breathing difficulty occurs"]
+  },
+  "malaria": {
+    "aliases": [],
+    "symptoms": ["Fever", "Chills", "Sweating", "Headache", "Body aches", "Nausea or vomiting", "Fatigue"],
+    "causes": ["Plasmodium parasite spread by infected mosquitoes"],
+    "care_advice": ["Seek medical testing promptly if malaria is possible", "Rest and hydrate", "Monitor fever pattern and weakness"],
+    "prevention": ["Avoid mosquito bites", "Use bed nets", "Use repellents", "Take travel prevention advice from a clinician when relevant"],
+    "red_flags": ["Confusion", "Seizure", "Severe anemia symptoms", "Breathing difficulty", "Yellow eyes", "Very dark urine", "Persistent vomiting"],
+    "when_to_consult_doctor": ["Fever after mosquito exposure or travel to a malaria area", "Symptoms are severe or recurring"]
+  },
+  "diabetes": {
+    "aliases": ["high blood sugar"],
+    "symptoms": ["Increased thirst", "Frequent urination", "Unexplained weight loss", "Fatigue", "Blurred vision", "Slow wound healing", "Tingling in hands or feet"],
+    "causes": ["Problems with insulin production or insulin use", "Genetic risk", "Lifestyle factors", "Some medical conditions or medicines"],
+    "care_advice": ["Monitor blood glucose if advised", "Follow nutrition and activity guidance from a clinician", "Keep regular checkups", "Do not change medication without medical advice"],
+    "prevention": ["Healthy weight", "Regular physical activity", "Balanced diet", "Routine screening if at risk"],
+    "red_flags": ["Confusion", "Severe weakness", "Vomiting", "Fruity breath", "Very high or very low glucose readings", "Loss of consciousness"],
+    "when_to_consult_doctor": ["Symptoms suggest high blood sugar", "Glucose readings are abnormal", "There are emergency symptoms"]
+  },
+  "hypertension": {
+    "aliases": ["high blood pressure", "bp high", "high bp"],
+    "symptoms": ["Often no symptoms", "Headache in some cases", "Dizziness in some cases", "Blurred vision in some cases", "Chest pain or breathlessness when severe"],
+    "causes": ["Genetic factors", "High salt diet", "Stress", "Kidney or hormone conditions", "Obesity", "Low physical activity", "Age-related blood vessel changes"],
+    "care_advice": ["Track blood pressure readings", "Reduce excess salt", "Stay physically active as safe", "Limit alcohol and tobacco", "Review readings with a clinician"],
+    "prevention": ["Regular blood pressure checks", "Healthy diet", "Regular activity", "Weight management", "Stress management", "Avoid tobacco"],
+    "red_flags": ["Chest pain", "Breathing difficulty", "Severe headache", "Weakness on one side", "Vision loss", "Confusion"],
+    "when_to_consult_doctor": ["Repeated readings are high", "Blood pressure is very high", "Any chest pain, stroke-like symptoms, or breathing difficulty occurs"]
+  },
+  "migraine": {
+    "aliases": [],
+    "symptoms": ["Moderate to severe headache", "Throbbing pain", "Sensitivity to light", "Sensitivity to sound", "Nausea", "Vomiting", "Visual aura in some people"],
+    "causes": ["Neurologic headache disorder", "Triggers can include stress, sleep changes, dehydration, certain foods, hormones, or bright light"],
+    "care_advice": ["Rest in a quiet dark room", "Hydrate", "Track triggers", "Seek clinician guidance for recurrent or severe headaches"],
+    "prevention": ["Regular sleep", "Hydration", "Trigger tracking", "Stress management", "Regular meals"],
+    "red_flags": ["Sudden worst headache", "Headache after injury", "Weakness", "Confusion", "Fever with stiff neck", "New headache after age 50"],
+    "when_to_consult_doctor": ["Headaches are new, severe, frequent, changing, or associated with neurologic symptoms"]
+  },
+  "common cold": {
+    "aliases": ["cold"],
+    "symptoms": ["Runny or stuffy nose", "Sneezing", "Sore throat", "Mild cough", "Mild fever", "Watery eyes", "Fatigue"],
+    "causes": ["Respiratory viruses spread by droplets or contaminated hands and surfaces"],
+    "care_advice": ["Rest", "Drink fluids", "Use saline or steam for congestion if helpful", "Monitor symptoms"],
+    "prevention": ["Hand hygiene", "Avoid touching face", "Cover coughs", "Avoid close contact with sick people"],
+    "red_flags": ["Breathing difficulty", "Chest pain", "High fever", "Symptoms lasting more than 10 days", "Severe ear or sinus pain"],
+    "when_to_consult_doctor": ["Symptoms worsen, fever is high, breathing is difficult, or illness lasts longer than expected"]
+  },
+  "asthma": {
+    "aliases": [],
+    "symptoms": ["Wheezing", "Cough", "Shortness of breath", "Chest tightness", "Symptoms worse at night or with triggers"],
+    "causes": ["Chronic airway inflammation", "Triggers can include allergens, infections, smoke, exercise, cold air, or pollution"],
+    "care_advice": ["Avoid known triggers", "Follow the asthma action plan given by a clinician", "Monitor breathing symptoms", "Seek urgent help for severe breathing difficulty"],
+    "prevention": ["Avoid smoke", "Reduce trigger exposure", "Use clinician-prescribed controller plan if applicable", "Vaccination advice when relevant"],
+    "red_flags": ["Severe breathing difficulty", "Blue lips", "Cannot speak full sentences", "Drowsiness", "Symptoms not improving with prescribed rescue plan"],
+    "when_to_consult_doctor": ["Symptoms are frequent, worsening, waking you at night, or limiting activity"]
+  },
+  "pneumonia": {
+    "aliases": [],
+    "symptoms": ["Cough", "Fever", "Chills", "Shortness of breath", "Chest pain with breathing or coughing", "Fatigue", "Confusion in older adults"],
+    "causes": ["Lung infection from bacteria, viruses, or fungi"],
+    "care_advice": ["Seek medical evaluation for suspected pneumonia", "Rest", "Hydrate", "Monitor breathing, fever, and oxygen if available"],
+    "prevention": ["Vaccination when appropriate", "Hand hygiene", "Avoid smoking", "Manage chronic conditions"],
+    "red_flags": ["Breathing difficulty", "Chest pain", "Confusion", "Blue lips", "Very high fever", "Low oxygen"],
+    "when_to_consult_doctor": ["Cough with fever and breathlessness", "Symptoms are severe", "Older adult, infant, pregnant, or chronic illness is involved"]
+  },
+  "covid-19": {
+    "aliases": ["covid", "coronavirus"],
+    "symptoms": ["Fever or chills", "Cough", "Shortness of breath", "Sore throat", "Loss of taste or smell", "Fatigue", "Body aches", "Headache", "Congestion", "Diarrhea"],
+    "causes": ["Infection with SARS-CoV-2 virus", "Spread mainly through respiratory particles"],
+    "care_advice": ["Rest", "Hydrate", "Avoid exposing others", "Monitor breathing and fever", "Seek medical advice if high risk or symptoms worsen"],
+    "prevention": ["Vaccination when appropriate", "Ventilation", "Masks in high-risk settings", "Hand hygiene", "Stay home when sick"],
+    "red_flags": ["Trouble breathing", "Chest pain", "Confusion", "Blue lips", "Severe weakness", "Low oxygen"],
+    "when_to_consult_doctor": ["Breathing is difficult", "Symptoms worsen", "High-risk person is infected", "Emergency symptoms occur"]
+  },
+  "anemia": {
+    "aliases": ["low hemoglobin", "low haemoglobin", "low hb"],
+    "symptoms": ["Fatigue", "Weakness", "Pale skin", "Dizziness", "Shortness of breath on exertion", "Fast heartbeat", "Cold hands or feet"],
+    "causes": ["Low iron", "Vitamin deficiency", "Blood loss", "Chronic disease", "Inherited blood conditions"],
+    "care_advice": ["Review blood test results with a clinician", "Do not start supplements without appropriate advice", "Track fatigue, dizziness, and breathlessness"],
+    "prevention": ["Balanced diet with iron-rich foods", "Routine screening if at risk", "Manage heavy bleeding or chronic illness with medical help"],
+    "red_flags": ["Chest pain", "Fainting", "Severe shortness of breath", "Very fast heartbeat", "Black or bloody stool"],
+    "when_to_consult_doctor": ["Hemoglobin is low", "Fatigue or dizziness is persistent", "There are bleeding symptoms or severe breathlessness"]
+  }
+}

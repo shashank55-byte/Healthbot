@@ -1,0 +1,18 @@
+{
+  "datasets": [
+    {
+      "name": "diabetes.csv",
+      "status": "ready",
+      "rows": 768,
+      "features": 8,
+      "purpose": "Specialized diabetes-risk refinement"
+    },
+    {
+      "name": "UCI processed heart disease files",
+      "status": "ready",
+      "rows": 920,
+      "features": 13,
+      "purpose": "Specialized heart-risk refinement"
+    }
+  ]
+}

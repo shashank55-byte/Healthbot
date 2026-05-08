@@ -1,0 +1,62 @@
+{
+  "dengue": {
+    "name": "Dengue",
+    "definition": "Dengue is a mosquito-borne viral infection causing flu-like illness that can develop into severe dengue.",
+    "symptoms": ["high fever", "severe headache", "pain behind the eyes", "muscle and joint pains", "rash"],
+    "causes": ["Dengue virus transmitted by Aedes mosquitoes"],
+    "transmission": ["Mosquito bites (Aedes aegypti, Aedes albopictus)"] ,
+    "risk_factors": ["Living or traveling in tropical/subtropical areas", "Poor mosquito control"],
+    "prevention": ["Use mosquito repellents", "Eliminate standing water", "Wear long sleeves"],
+    "emergency_signs": ["Severe abdominal pain", "Persistent vomiting", "Bleeding", "Rapid breathing"]
+  },
+  "malaria": {
+    "name": "Malaria",
+    "definition": "Malaria is a life-threatening disease caused by Plasmodium parasites transmitted to people through the bites of infected Anopheles mosquitoes.",
+    "symptoms": ["fever", "chills", "sweats", "headaches", "nausea", "vomiting"],
+    "causes": ["Plasmodium parasites"],
+    "transmission": ["Mosquito bites (Anopheles)"] ,
+    "risk_factors": ["Travel to endemic regions", "Lack of prophylaxis"],
+    "prevention": ["Use bed nets", "Repellents", "Prophylactic medications"],
+    "emergency_signs": ["Confusion", "Seizures", "Breathing difficulty", "Severe anemia"]
+  },
+  "diabetes": {
+    "name": "Diabetes",
+    "definition": "Diabetes is a chronic condition characterized by elevated blood glucose due to insufficient insulin production or action.",
+    "symptoms": ["increased thirst", "frequent urination", "fatigue", "blurred vision"],
+    "causes": ["Autoimmune destruction of beta cells (type 1)", "Insulin resistance (type 2)", "Genetic and lifestyle factors"],
+    "transmission": ["Not infectious"],
+    "risk_factors": ["Family history", "Obesity", "Sedentary lifestyle", "Poor diet"],
+    "prevention": ["Healthy diet", "Regular exercise", "Weight management"],
+    "emergency_signs": ["Confusion or coma (DKA)", "Very high or low blood sugar"]
+  },
+  "pneumonia": {
+    "name": "Pneumonia",
+    "definition": "Pneumonia is an infection of the lungs that inflames the air sacs which may fill with fluid.",
+    "symptoms": ["cough", "fever", "shortness of breath", "chest pain"],
+    "causes": ["Bacteria", "Viruses", "Fungi"],
+    "transmission": ["Airborne droplets", "Aspiration"] ,
+    "risk_factors": ["Young or elderly age", "Chronic diseases", "Smoking"],
+    "prevention": ["Vaccination", "Hand hygiene", "Avoid smoking"],
+    "emergency_signs": ["Severe shortness of breath", "Confusion", "Blue lips"]
+  },
+  "flu": {
+    "name": "Influenza",
+    "definition": "Influenza (flu) is a contagious respiratory illness caused by influenza viruses.",
+    "symptoms": ["fever", "cough", "sore throat", "runny or stuffy nose", "muscle aches", "fatigue"],
+    "causes": ["Influenza viruses (A, B)"],
+    "transmission": ["Respiratory droplets", "Surface contact"] ,
+    "risk_factors": ["Young children", "Older adults", "Pregnant women", "Chronic conditions"],
+    "prevention": ["Annual vaccination", "Hand hygiene", "Avoid close contact with sick people"],
+    "emergency_signs": ["Difficulty breathing", "Chest pain", "Persistent high fever"]
+  },
+  "typhoid": {
+    "name": "Typhoid",
+    "definition": "Typhoid fever is a bacterial infection caused by Salmonella typhi, spread through contaminated food and water.",
+    "symptoms": ["prolonged fever", "weakness", "stomach pain", "headache", "constipation or diarrhea"],
+    "causes": ["Salmonella typhi"],
+    "transmission": ["Fecal-oral route", "Contaminated food/water"] ,
+    "risk_factors": ["Poor sanitation", "Travel to endemic areas"],
+    "prevention": ["Safe drinking water", "Proper sanitation", "Hand hygiene", "Vaccination"],
+    "emergency_signs": ["Intestinal bleeding", "Delirium", "Severe abdominal pain"]
+  }
+}

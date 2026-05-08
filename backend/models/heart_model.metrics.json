@@ -1,0 +1,60 @@
+{
+  "model_name": "heart_model",
+  "role": "Specialized heart-risk refinement when cardiac symptoms or abnormal vitals are present.",
+  "dataset": "data\\specialized\\heart",
+  "samples": 299,
+  "training_samples": 239,
+  "validation_samples": 60,
+  "disease_classes": 2,
+  "features": 13,
+  "algorithm": "Random Forest classifier",
+  "feature_names": [
+    "age",
+    "sex",
+    "cp",
+    "trestbps",
+    "chol",
+    "fbs",
+    "restecg",
+    "thalach",
+    "exang",
+    "oldpeak",
+    "slope",
+    "ca",
+    "thal"
+  ],
+  "metrics": {
+    "accuracy": 0.7833,
+    "precision": 0.7891,
+    "recall": 0.7833,
+    "f1_score": 0.7806,
+    "confusion_matrix": {
+      "labels": [
+        "0",
+        "1"
+      ],
+      "matrix": [
+        [
+          28,
+          4
+        ],
+        [
+          9,
+          19
+        ]
+      ],
+      "note": "Rows represent actual classes and columns represent predicted classes."
+    },
+    "evaluation_note": "The datasets are structured academic datasets, so normal holdout accuracy may be high. Use validation limitations before making claims about real-world performance.",
+    "validation_audit": {
+      "overfitting_risk": "low",
+      "dataset_simplicity_risk": "medium",
+      "validation_samples_per_class": 30.0,
+      "recommended_claim": "Use as a clinical decision-support prototype, not a clinically validated diagnostic model.",
+      "warnings": []
+    }
+  },
+  "evaluation_note": "The datasets are structured academic datasets, so normal holdout accuracy may be high. Use validation limitations before making claims about real-world performance.",
+  "safety_disclaimer": "This system is for educational and decision-support purposes only and does not replace professional medical diagnosis or treatment.",
+  "model_path": "models\\heart_model.pkl"
+}

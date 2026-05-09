@@ -142,6 +142,7 @@ function RecordAnalysisModal({ record, onClose, onDownload, onDelete }) {
   const extraction = analysis.extraction || {};
   const auditTrail = analysis.auditTrail || [];
   const modelTransparency = analysis.modelTransparency || {};
+  const labMarkerPrediction = analysis.labMarkerPrediction || null;
 
   return (
     <div className="fixed inset-0 z-[80] bg-gray-900/50 backdrop-blur-sm p-6 overflow-y-auto">
@@ -246,6 +247,39 @@ function RecordAnalysisModal({ record, onClose, onDownload, onDelete }) {
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
+              {labMarkerPrediction && (
+                <div className="md:col-span-2 bg-indigo-50 border border-indigo-100 rounded-3xl p-5">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                    <div>
+                      <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-1">Lab Marker ML Prediction</p>
+                      <h4 className="text-xl font-black text-indigo-950">{labMarkerPrediction.prediction}</h4>
+                      <p className="mt-1 text-xs font-bold text-indigo-700">
+                        {labMarkerPrediction.model_name} | confidence {labMarkerPrediction.confidence}%
+                      </p>
+                    </div>
+                    <span className="rounded-xl bg-white px-3 py-2 text-[10px] font-black uppercase tracking-widest text-indigo-700">
+                      {labMarkerPrediction.used_features?.length || 0} markers used
+                    </span>
+                  </div>
+                  <div className="mt-4 grid gap-3 md:grid-cols-3">
+                    {(labMarkerPrediction.probabilities || []).slice(0, 3).map((item) => (
+                      <div key={item.label} className="rounded-2xl bg-white/80 p-3">
+                        <div className="mb-2 flex items-center justify-between">
+                          <p className="text-xs font-black text-gray-700">{item.label}</p>
+                          <p className="text-xs font-black text-indigo-700">{item.probability}%</p>
+                        </div>
+                        <div className="h-2 rounded-full bg-indigo-100">
+                          <div className="h-full rounded-full bg-indigo-500" style={{ width: `${item.probability}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-3 text-[10px] font-bold text-indigo-700 leading-relaxed">
+                    {labMarkerPrediction.disclaimer}
+                  </p>
+                </div>
+              )}
+
               <div className="bg-amber-50 border border-amber-100 rounded-3xl p-5">
                 <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest mb-3">Abnormal Findings</p>
                 <div className="space-y-2">

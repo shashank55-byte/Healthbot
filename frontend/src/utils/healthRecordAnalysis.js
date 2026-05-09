@@ -133,6 +133,14 @@ function parseTextLabParameters(text) {
       clinicalLow: 'Low WBC can require clinical review depending on context.'
     },
     {
+      name: 'HbA1C',
+      aliases: ['hba1c', 'hb a1c', 'a1c'],
+      unit: '%',
+      normalRange: '< 5.7%',
+      normalHigh: 5.7,
+      clinicalHigh: 'HbA1C is above the configured non-diabetic reference threshold.'
+    },
+    {
       name: 'Blood Sugar',
       aliases: ['blood sugar', 'glucose', 'fasting glucose', 'fbs'],
       unit: 'mg/dL',
@@ -151,6 +159,30 @@ function parseTextLabParameters(text) {
       clinicalHigh: 'Above desirable range; cardiovascular risk review is reasonable.'
     },
     {
+      name: 'LDL',
+      aliases: ['ldl', 'ldl cholesterol'],
+      unit: 'mg/dL',
+      normalRange: '< 100 mg/dL',
+      normalHigh: 100,
+      clinicalHigh: 'LDL is above the configured optimal range.'
+    },
+    {
+      name: 'HDL',
+      aliases: ['hdl', 'hdl cholesterol'],
+      unit: 'mg/dL',
+      normalRange: '> 40 mg/dL',
+      normalLow: 40,
+      clinicalLow: 'HDL is below the configured protective range.'
+    },
+    {
+      name: 'Triglycerides',
+      aliases: ['triglycerides', 'tg'],
+      unit: 'mg/dL',
+      normalRange: '< 150 mg/dL',
+      normalHigh: 150,
+      clinicalHigh: 'Triglycerides are above the configured reference range.'
+    },
+    {
       name: 'Creatinine',
       aliases: ['creatinine'],
       unit: 'mg/dL',
@@ -167,12 +199,81 @@ function parseTextLabParameters(text) {
       normalLow: 30,
       normalHigh: 100,
       clinicalLow: 'Low vitamin D is common and usually reviewed non-urgently.'
+    },
+    {
+      name: 'MCV',
+      aliases: ['mcv', 'mean corpuscular volume'],
+      unit: 'fL',
+      normalRange: '80-100 fL',
+      normalLow: 80,
+      normalHigh: 100,
+      clinicalHigh: 'MCV is above the configured reference range.',
+      clinicalLow: 'MCV is below the configured reference range.'
     }
   ];
 
-  return definitions
+  const parameters = definitions
     .map((definition) => extractedParameter({ text, ...definition }))
     .filter(Boolean);
+  const bpMatch = normalizeText(text).match(/(?:blood pressure|bp)\s*[:=,-]?\s*(\d{2,3})\s*\/\s*(\d{2,3})/i);
+  if (bpMatch) {
+    const systolic = Number(bpMatch[1]);
+    const diastolic = Number(bpMatch[2]);
+    const systolicStatus = statusFromRange(systolic, null, 120);
+    const diastolicStatus = statusFromRange(diastolic, null, 80);
+    parameters.push(parameter({
+      name: 'Systolic BP',
+      value: systolic,
+      unit: 'mmHg',
+      normalRange: '< 120 mmHg',
+      normalHigh: 120,
+      status: systolicStatus.status,
+      severity: systolicStatus.severity,
+      clinicalNote: systolicStatus.status === 'High' ? 'Systolic blood pressure is above the configured reference range.' : 'Within configured reference range.',
+      evidence: 'Extracted from readable uploaded file text'
+    }));
+    parameters.push(parameter({
+      name: 'Diastolic BP',
+      value: diastolic,
+      unit: 'mmHg',
+      normalRange: '< 80 mmHg',
+      normalHigh: 80,
+      status: diastolicStatus.status,
+      severity: diastolicStatus.severity,
+      clinicalNote: diastolicStatus.status === 'High' ? 'Diastolic blood pressure is above the configured reference range.' : 'Within configured reference range.',
+      evidence: 'Extracted from readable uploaded file text'
+    }));
+  }
+
+  return parameters;
+}
+
+export function buildLabMarkerPayload(record) {
+  const parameters = record?.analysis?.extractedParameters || record?.analysis?.parameters || [];
+  const markers = {};
+
+  const parseValue = (param) => {
+    const raw = param?.rawValue ?? param?.value;
+    const parsed = Number(String(raw || '').replace(/,/g, '').match(/-?\d+(?:\.\d+)?/)?.[0]);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
+  parameters.forEach((param) => {
+    const key = String(param?.name || '').toLowerCase();
+    const value = parseValue(param);
+    if (value === null) return;
+    if (key === 'blood sugar' || key.includes('glucose')) markers.Blood_glucose = value;
+    if (key === 'hba1c' || key.includes('a1c')) markers.HbA1C = value;
+    if (key === 'systolic bp') markers.Systolic_BP = value;
+    if (key === 'diastolic bp') markers.Diastolic_BP = value;
+    if (key === 'ldl') markers.LDL = value;
+    if (key === 'hdl') markers.HDL = value;
+    if (key === 'triglycerides') markers.Triglycerides = value;
+    if (key === 'hemoglobin' || key === 'haemoglobin') markers.Haemoglobin = value;
+    if (key === 'mcv') markers.MCV = value;
+  });
+
+  return markers;
 }
 
 function calculateReportRiskScore(parameters = [], documentType = DOC_TYPES.GENERAL) {

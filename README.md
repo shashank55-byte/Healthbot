@@ -12,6 +12,7 @@ This system provides educational decision-support information only. It is not a 
 - User-scoped symptom history, health records, medications, reminders, and trends
 - AI-assisted symptom analysis with severity, risk score, confidence, disease probabilities, and emergency flags
 - Persistent health records and lab report metadata through `/api/health-records`
+- Lab marker condition prediction from glucose, HbA1C, BP, lipid markers, haemoglobin, and MCV using `health_markers_dataset.csv`
 - Health trends dashboard with 7/30/90 day filters, risk/severity/confidence toggle, alerts, and point details
 - Personal Health Insights dashboard using stored symptoms, vitals, records, medications, reminders, adherence data, and an ML-based future risk classifier
 - Medication tracker with duplicate and interaction warnings
@@ -187,6 +188,8 @@ Restart the backend after retraining.
 - `GET /api/health-trends?days=7`
 - `GET /api/personal-insights`
 - `GET /api/personal-risk-prediction`
+- `GET /api/lab-marker-model`
+- `POST /api/lab-marker-prediction`
 - `GET /api/vitals`
 - `POST /api/vitals`
 - `POST /api/health-records`
@@ -209,7 +212,7 @@ Existing demo APIs still work without a token by falling back to the `demo` user
 ## Known Limitations
 
 - The app is a prototype and not clinically validated.
-- Health record analysis uses deterministic mock extraction based on file metadata; real OCR/lab parsing is not yet connected.
+- Health record analysis can parse readable text/CSV-style lab files, but scanned images and PDFs still need OCR integration.
 - Disease prediction uses structured/sample datasets, so accuracy should be presented conservatively.
 - The token implementation is intentionally simple for project demonstration; production deployments should use hardened authentication, HTTPS, secure cookies or a vetted JWT library, rate limiting, and password reset flows.
 - Uploaded file binary storage is not implemented; the backend persists metadata, analysis summary, risk level, and extracted parameters.

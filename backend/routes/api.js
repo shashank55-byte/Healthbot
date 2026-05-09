@@ -11,6 +11,7 @@ const hybridPredictionService = require('../services/hybridPredictionService');
 const chatSupportService = require('../services/chatSupportService');
 const medicationService = require('../services/medicationService');
 const historyRiskModelService = require('../services/historyRiskModelService');
+const labMarkerPredictionService = require('../services/labMarkerPredictionService');
 const { spawn } = require('child_process');
 const path = require('path');
 
@@ -170,6 +171,17 @@ router.get('/model/disease-prediction', (_req, res) => {
 
 router.get('/model-info', (_req, res) => {
   res.json(modelInfoService.getModelInfo());
+});
+
+router.get('/lab-marker-model', (_req, res) => {
+  res.json(labMarkerPredictionService.getModel());
+});
+
+router.post('/lab-marker-prediction', (req, res) => {
+  const markers = req.body?.markers || req.body || {};
+  const prediction = labMarkerPredictionService.predict(markers);
+  if (!prediction.available) return res.status(400).json(prediction);
+  return res.json(prediction);
 });
 
 router.post('/chat', async (req, res) => {

@@ -260,6 +260,36 @@ describe('GET /api/history and /api/track', () => {
     expect(res.body.training_samples).toBeGreaterThanOrEqual(3);
     expect(res.body.probabilities.length).toBe(3);
   });
+
+  test('lab marker model predicts condition from numeric markers', async () => {
+    const model = await request(app).get('/api/lab-marker-model');
+    expect(model.status).toBe(200);
+    expect(model.body.rows).toBeGreaterThan(1000);
+    expect(model.body.features).toEqual(expect.arrayContaining(['Blood_glucose', 'HbA1C', 'Systolic_BP']));
+
+    const res = await request(app)
+      .post('/api/lab-marker-prediction')
+      .send({
+        markers: {
+          Blood_glucose: 145,
+          HbA1C: 7.1,
+          Systolic_BP: 138,
+          Diastolic_BP: 88,
+          LDL: 160,
+          HDL: 38,
+          Triglycerides: 180,
+          Haemoglobin: 12.1,
+          MCV: 82
+        }
+      })
+      .set('Content-Type', 'application/json');
+
+    expect(res.status).toBe(200);
+    expect(res.body.model_name).toBe('Lab Marker Condition Classifier');
+    expect(['Fit', 'Diabetes', 'Hypertension', 'High_Cholesterol', 'Anemia']).toContain(res.body.prediction);
+    expect(res.body.probabilities.length).toBeGreaterThanOrEqual(3);
+    expect(res.body.dataset_rows).toBeGreaterThan(1000);
+  });
 });
 
 describe('Auth and persistent health records', () => {

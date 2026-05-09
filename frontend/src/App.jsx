@@ -22,7 +22,7 @@ import SettingsView from './components/dashboard/SettingsView';
 import ChatSupportView from './components/dashboard/ChatSupportView';
 import VitalsView from './components/dashboard/VitalsView';
 import PersonalInsightsView from './components/dashboard/PersonalInsightsView';
-import { analyzeHealthRecord, combineWithSymptomRisk } from './utils/healthRecordAnalysis';
+import { analyzeHealthRecord, buildLabMarkerPayload, combineWithSymptomRisk } from './utils/healthRecordAnalysis';
 import { deriveClinicalDecisionSupport } from './utils/clinicalSupport';
 
 const API_BASE = 'http://localhost:5000/api';
@@ -244,8 +244,31 @@ export default function App() {
     // Simulate AI analysis delay
     await new Promise(r => setTimeout(r, 2500));
     
-    const analyzedRecord = analyzeHealthRecord(newRecord);
+    let analyzedRecord = analyzeHealthRecord(newRecord);
     try {
+      const markers = buildLabMarkerPayload(analyzedRecord);
+      if (Object.keys(markers).length >= 2) {
+        const predictionResponse = await fetch(`${API_BASE}/lab-marker-prediction`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
+          body: JSON.stringify({ markers })
+        });
+        const labPrediction = await predictionResponse.json();
+        if (predictionResponse.ok) {
+          analyzedRecord = {
+            ...analyzedRecord,
+            analysis: {
+              ...analyzedRecord.analysis,
+              labMarkerPrediction: labPrediction,
+              modelTransparency: {
+                ...(analyzedRecord.analysis?.modelTransparency || {}),
+                labMarkerModel: `${labPrediction.model_name} using ${labPrediction.dataset_rows} health marker rows`
+              }
+            }
+          };
+        }
+      }
+
       const response = await fetch(`${API_BASE}/health-records`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders },

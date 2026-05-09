@@ -13,6 +13,7 @@ This system provides educational decision-support information only. It is not a 
 - AI-assisted symptom analysis with severity, risk score, confidence, disease probabilities, and emergency flags
 - Persistent health records and lab report metadata through `/api/health-records`
 - Health trends dashboard with 7/30/90 day filters, risk/severity/confidence toggle, alerts, and point details
+- Personal Health Insights dashboard using stored symptoms, vitals, records, medications, reminders, and adherence data
 - Medication tracker with duplicate and interaction warnings
 - Smart reminders with adherence-style completion tracking
 - Doctor directory and doctor search fallback
@@ -172,9 +173,10 @@ Restart the backend after retraining.
 3. Review severity, risk score, disease probabilities, confidence, emergency status, and explanations.
 4. Upload a sample health record or lab report from Health Records.
 5. Open Health Trends and switch between severity, risk score, and confidence.
-6. Add medications and reminders.
-7. Generate the Doctor Visit Summary PDF from the analysis result.
-8. Log out and log in as another user to show user-scoped data separation.
+6. Add vitals, medications, and reminders.
+7. Open Personal Insights to show how stored database data becomes a patient-level monitoring report.
+8. Generate the Doctor Visit Summary PDF from the analysis result.
+9. Log out and log in as another user to show user-scoped data separation.
 
 ## Main APIs
 
@@ -183,6 +185,9 @@ Restart the backend after retraining.
 - `POST /api/analyze`
 - `GET /api/history`
 - `GET /api/health-trends?days=7`
+- `GET /api/personal-insights`
+- `GET /api/vitals`
+- `POST /api/vitals`
 - `POST /api/health-records`
 - `GET /api/health-records`
 - `DELETE /api/health-records/:id`

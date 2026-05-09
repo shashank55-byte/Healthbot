@@ -21,6 +21,7 @@ import RemindersView from './components/dashboard/RemindersView';
 import SettingsView from './components/dashboard/SettingsView';
 import ChatSupportView from './components/dashboard/ChatSupportView';
 import VitalsView from './components/dashboard/VitalsView';
+import PersonalInsightsView from './components/dashboard/PersonalInsightsView';
 import { analyzeHealthRecord, combineWithSymptomRisk } from './utils/healthRecordAnalysis';
 import { deriveClinicalDecisionSupport } from './utils/clinicalSupport';
 
@@ -490,6 +491,8 @@ export default function App() {
               <TrendsView trend={trend} healthRecords={healthRecords} onTrendChange={setTrend} />
             ) : activeView === 'vitals' ? (
               <VitalsView authHeaders={authHeaders} onDataChange={setVitalReadings} />
+            ) : activeView === 'insights' ? (
+              <PersonalInsightsView authHeaders={authHeaders} />
             ) : activeView === 'simulator' ? (
               <WhatIfSimulatorView
                 result={displayedResult}

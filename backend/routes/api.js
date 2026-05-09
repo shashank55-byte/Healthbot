@@ -595,6 +595,175 @@ router.delete('/history/:id', async (req, res) => {
   }
 });
 
+function toPlainObject(item) {
+  return item?.toObject ? item.toObject() : { ...(item || {}) };
+}
+
+function dateValue(item) {
+  const raw = item.createdAt || item.date || item.uploadedAt || item.timestamp || Date.now();
+  const date = typeof raw === 'number' ? new Date(raw) : new Date(raw);
+  return Number.isFinite(date.getTime()) ? date : new Date();
+}
+
+function countItems(values = []) {
+  const counts = {};
+  values.forEach((value) => {
+    const key = String(value || '').trim().toLowerCase();
+    if (!key) return;
+    counts[key] = (counts[key] || 0) + 1;
+  });
+  return Object.entries(counts)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+}
+
+function vitalFlags(vital = {}) {
+  const flags = [];
+  const has = (value) => Number.isFinite(Number(value));
+  if ((has(vital.systolic) && vital.systolic >= 140) || (has(vital.diastolic) && vital.diastolic >= 90)) flags.push('High BP');
+  if ((has(vital.systolic) && vital.systolic < 90) || (has(vital.diastolic) && vital.diastolic < 60)) flags.push('Low BP');
+  if (has(vital.heartRate) && vital.heartRate > 110) flags.push('High heart rate');
+  if (has(vital.heartRate) && vital.heartRate > 0 && vital.heartRate < 50) flags.push('Low heart rate');
+  if (has(vital.temperature) && vital.temperature >= 103) flags.push('High fever');
+  if (has(vital.oxygen) && vital.oxygen > 0 && vital.oxygen < 92) flags.push('Low oxygen');
+  if (has(vital.glucose) && vital.glucose >= 180) flags.push('High glucose');
+  if (has(vital.glucose) && vital.glucose > 0 && vital.glucose < 70) flags.push('Low glucose');
+  return flags;
+}
+
+function summarizePersonalInsights({ interactions = [], vitals = [], records = [], medications = [], reminders = [], userId = 'demo' }) {
+  const normalizedInteractions = interactions.map(toPlainObject);
+  const normalizedVitals = vitals.map(toPlainObject);
+  const normalizedRecords = records.map(toPlainObject);
+  const normalizedMedications = medications.map(toPlainObject);
+  const normalizedReminders = reminders.map(toPlainObject);
+
+  const riskScores = normalizedInteractions.map((item) => Number(item.score ?? item.risk_score)).filter(Number.isFinite);
+  const averageRisk = riskScores.length ? Math.round(average(riskScores)) : 0;
+  const highestRisk = riskScores.length ? Math.max(...riskScores) : 0;
+  const latestInteraction = [...normalizedInteractions].sort((a, b) => dateValue(b) - dateValue(a))[0] || null;
+  const latestRisk = latestInteraction ? clampMetric(latestInteraction.score ?? latestInteraction.risk_score) : 0;
+  const emergencyCount = normalizedInteractions.filter((item) => item.emergency_flag).length;
+  const highRiskCount = riskScores.filter((score) => score >= 71).length;
+  const symptoms = countItems(normalizedInteractions.flatMap((item) => Array.isArray(item.symptoms) ? item.symptoms : []));
+
+  const vitalFlagItems = normalizedVitals.flatMap((vital) => vitalFlags(vital).map((flag) => ({ flag, date: dateValue(vital).toISOString() })));
+  const vitalFlagCounts = countItems(vitalFlagItems.map((item) => item.flag));
+  const latestVitals = [...normalizedVitals].sort((a, b) => dateValue(b) - dateValue(a))[0] || null;
+
+  const abnormalLabs = normalizedRecords.flatMap((record) => {
+    const direct = Array.isArray(record.abnormalValues) ? record.abnormalValues : [];
+    const nested = Array.isArray(record.analysis?.abnormalValues) ? record.analysis.abnormalValues : [];
+    return [...direct, ...nested];
+  });
+  const highRiskRecords = normalizedRecords.filter((record) => {
+    const score = Number(record.recordRiskScore ?? record.analysis?.reportRiskScore) || 0;
+    return record.riskLevel === 'High' || record.recordRiskLevel === 'High' || record.analysis?.riskLevel === 'High' || score >= 70;
+  });
+
+  const adherenceEntries = normalizedMedications.flatMap((medication) => Array.isArray(medication.adherence) ? medication.adherence : []);
+  const taken = adherenceEntries.filter((item) => item.status === 'taken').length;
+  const medicationAdherence = adherenceEntries.length ? Math.round((taken / adherenceEntries.length) * 100) : null;
+  const reminderCompleted = normalizedReminders.filter((item) => item.status === 'Completed').length;
+  const reminderMissed = normalizedReminders.filter((item) => item.status === 'Missed').length;
+  const reminderAdherence = (reminderCompleted + reminderMissed) ? Math.round((reminderCompleted / (reminderCompleted + reminderMissed)) * 100) : null;
+
+  const riskTrend = (() => {
+    const recent = [...normalizedInteractions]
+      .sort((a, b) => dateValue(a) - dateValue(b))
+      .map((item) => Number(item.score ?? item.risk_score))
+      .filter(Number.isFinite)
+      .slice(-5);
+    if (recent.length < 2) return 'not enough data';
+    const diff = recent[recent.length - 1] - recent[0];
+    if (Math.abs(diff) < 5) return 'stable';
+    return diff > 0 ? 'worsening' : 'improving';
+  })();
+
+  const overallStatus = (() => {
+    if (emergencyCount > 0 || highestRisk >= 85 || vitalFlagCounts.some((item) => ['low oxygen', 'high fever'].includes(item.name))) return 'needs attention';
+    if (riskTrend === 'improving' && highRiskCount === 0) return 'improving';
+    if (riskTrend === 'worsening' || highRiskCount > 0 || vitalFlagCounts.length > 0 || highRiskRecords.length > 0) return 'monitor closely';
+    return 'stable';
+  })();
+
+  const recommendations = [
+    symptoms.length ? `Most frequent symptom: ${symptoms[0].name}.` : 'Add symptom check-ins to build a clearer history.',
+    vitalFlagCounts.length ? `Review repeated vital flags such as ${vitalFlagCounts.slice(0, 2).map((item) => item.name).join(', ')}.` : 'Continue recording vitals regularly.',
+    abnormalLabs.length ? 'Discuss abnormal lab values with a clinician during your next visit.' : 'Upload lab reports when available for richer context.',
+    reminderMissed > 0 ? 'Improve reminder adherence by completing or rescheduling missed items.' : 'Keep using reminders to maintain follow-up consistency.'
+  ];
+
+  return {
+    userId,
+    generated_at: new Date().toISOString(),
+    overall_status: overallStatus,
+    risk_trend: riskTrend,
+    summary: {
+      total_checkins: normalizedInteractions.length,
+      average_risk_score: averageRisk,
+      highest_risk_score: highestRisk,
+      latest_risk_score: latestRisk,
+      emergency_flags: emergencyCount,
+      high_risk_checkins: highRiskCount,
+      total_vitals: normalizedVitals.length,
+      abnormal_vital_flags: vitalFlagItems.length,
+      total_records: normalizedRecords.length,
+      abnormal_labs: abnormalLabs.length,
+      active_medications: normalizedMedications.filter((item) => item.status !== 'completed').length,
+      total_reminders: normalizedReminders.length,
+      medication_adherence: medicationAdherence,
+      reminder_adherence: reminderAdherence
+    },
+    frequent_symptoms: symptoms.slice(0, 8),
+    vital_flags: vitalFlagCounts.slice(0, 8),
+    latest_vitals: latestVitals,
+    record_summary: {
+      high_risk_records: highRiskRecords.length,
+      abnormal_labs: abnormalLabs.slice(0, 8),
+      recent_records: normalizedRecords
+        .sort((a, b) => dateValue(b) - dateValue(a))
+        .slice(0, 5)
+        .map((record) => ({
+          id: String(record._id || record.id || ''),
+          name: record.fileName || record.name || 'Health record',
+          risk_level: record.riskLevel || record.recordRiskLevel || record.analysis?.riskLevel || 'Not available',
+          score: Number(record.recordRiskScore ?? record.analysis?.reportRiskScore) || 0,
+          uploaded_at: dateValue(record).toISOString()
+        }))
+    },
+    adherence: {
+      medication_adherence: medicationAdherence,
+      reminder_adherence: reminderAdherence,
+      missed_reminders: reminderMissed,
+      completed_reminders: reminderCompleted
+    },
+    recommendations,
+    disclaimer: STANDARD_MEDICAL_DISCLAIMER
+  };
+}
+
+router.get('/personal-insights', async (req, res) => {
+  const userId = currentUserId(req);
+
+  try {
+    if (mongoose.connection.readyState !== 1) throw new Error('MongoDB not connected');
+    const { Interaction, Vital, HealthRecord, Medication, Reminder } = req.models;
+    const [interactions, vitals, records, medications, reminders] = await Promise.all([
+      Interaction.find({ userId }).sort({ createdAt: -1 }).limit(100),
+      Vital ? Vital.find({ userId }).sort({ date: -1, createdAt: -1 }).limit(100) : [],
+      HealthRecord ? HealthRecord.find({ userId }).sort({ createdAt: -1 }).limit(50) : [],
+      Medication ? Medication.find({ userId }).sort({ createdAt: -1 }).limit(50) : [],
+      Reminder ? Reminder.find({ userId }).sort({ date: -1, createdAt: -1 }).limit(100) : []
+    ]);
+
+    return res.json(summarizePersonalInsights({ interactions, vitals, records, medications, reminders, userId }));
+  } catch (error) {
+    const interactions = history.filter((item) => (item.userId || 'demo') === userId);
+    return res.json(summarizePersonalInsights({ interactions, vitals: [], records: [], medications: [], reminders: [], userId }));
+  }
+});
+
 function clampMetric(value) {
   const number = Number(value);
   if (!Number.isFinite(number)) return 0;

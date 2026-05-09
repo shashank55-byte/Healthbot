@@ -212,6 +212,22 @@ describe('GET /api/history and /api/track', () => {
       lab_tests: expect.any(Array)
     }));
   });
+
+  test('personal insights summarizes stored health data', async () => {
+    const userId = `insights-${Date.now()}`;
+    await request(app).post('/api/analyze').send({ userId, message: 'fever and cough' }).set('Content-Type', 'application/json');
+    await request(app).post('/api/analyze').send({ userId, message: 'chest pain and breathing difficulty' }).set('Content-Type', 'application/json');
+
+    const res = await request(app).get(`/api/personal-insights?userId=${userId}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.userId).toBe(userId);
+    expect(res.body.summary.total_checkins).toBeGreaterThanOrEqual(2);
+    expect(typeof res.body.summary.average_risk_score).toBe('number');
+    expect(Array.isArray(res.body.frequent_symptoms)).toBe(true);
+    expect(Array.isArray(res.body.recommendations)).toBe(true);
+    expect(res.body.disclaimer).toMatch(/educational decision-support/i);
+  });
 });
 
 describe('Auth and persistent health records', () => {

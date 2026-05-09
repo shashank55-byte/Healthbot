@@ -29,6 +29,7 @@ export default function DashboardSidebar({ activeView, onViewChange, user, theme
     { id: 'history', label: 'My History', icon: '\u{1F4CB}' },
     { id: 'trends', label: 'Health Trends', icon: '\u{1F4C8}' },
     { id: 'vitals', label: 'Vitals Tracking', icon: '\u{1FAC0}' },
+    { id: 'insights', label: 'Personal Insights', icon: '\u{1F4CA}' },
     { id: 'simulator', label: 'Clinical Scenario Analyzer', icon: '\u{1F9E0}' },
     { id: 'records', label: 'Health Records', icon: '\u{1F4C1}' },
     { id: 'medications', label: 'Medications', icon: '\u{1F48A}' },

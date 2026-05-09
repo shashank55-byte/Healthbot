@@ -10,6 +10,7 @@ const modelInfoService = require('../services/modelInfoService');
 const hybridPredictionService = require('../services/hybridPredictionService');
 const chatSupportService = require('../services/chatSupportService');
 const medicationService = require('../services/medicationService');
+const historyRiskModelService = require('../services/historyRiskModelService');
 const { spawn } = require('child_process');
 const path = require('path');
 
@@ -708,6 +709,13 @@ function summarizePersonalInsights({ interactions = [], vitals = [], records = [
   const reminderCompleted = normalizedReminders.filter((item) => item.status === 'Completed').length;
   const reminderMissed = normalizedReminders.filter((item) => item.status === 'Missed').length;
   const reminderAdherence = (reminderCompleted + reminderMissed) ? Math.round((reminderCompleted / (reminderCompleted + reminderMissed)) * 100) : null;
+  const mlRiskPrediction = historyRiskModelService.predict({
+    interactions: normalizedInteractions,
+    vitals: normalizedVitals,
+    records: normalizedRecords,
+    medications: normalizedMedications,
+    reminders: normalizedReminders
+  });
 
   const riskTrend = (() => {
     const recent = [...normalizedInteractions]
@@ -796,10 +804,33 @@ function summarizePersonalInsights({ interactions = [], vitals = [], records = [
           created_at: dateValue(medication).toISOString()
         }))
     },
+    ml_risk_prediction: mlRiskPrediction,
     recommendations,
     disclaimer: STANDARD_MEDICAL_DISCLAIMER
   };
 }
+
+router.get('/personal-risk-prediction', async (req, res) => {
+  const userId = currentUserId(req);
+
+  try {
+    if (mongoose.connection.readyState !== 1) throw new Error('MongoDB not connected');
+    const { Interaction, Vital, HealthRecord, Reminder } = req.models;
+    const [interactions, vitals, records, medications, reminders] = await Promise.all([
+      Interaction.find({ userId }).sort({ createdAt: -1 }).limit(100),
+      Vital ? Vital.find({ userId }).sort({ date: -1, createdAt: -1 }).limit(100) : [],
+      HealthRecord ? HealthRecord.find({ userId }).sort({ createdAt: -1 }).limit(50) : [],
+      medicationService.getMedications(req.models, userId),
+      Reminder ? Reminder.find({ userId }).sort({ date: -1, createdAt: -1 }).limit(100) : []
+    ]);
+
+    return res.json(historyRiskModelService.predict({ interactions, vitals, records, medications, reminders }));
+  } catch (error) {
+    const interactions = history.filter((item) => (item.userId || 'demo') === userId);
+    const medications = await medicationService.getMedications(req.models, userId).catch(() => []);
+    return res.json(historyRiskModelService.predict({ interactions, vitals: [], records: [], medications, reminders: [] }));
+  }
+});
 
 router.get('/personal-insights', async (req, res) => {
   const userId = currentUserId(req);

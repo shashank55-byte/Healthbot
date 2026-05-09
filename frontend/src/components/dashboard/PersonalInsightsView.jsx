@@ -55,6 +55,7 @@ export default function PersonalInsightsView({ authHeaders = {} }) {
   const recordSummary = insights?.record_summary || {};
   const adherence = insights?.adherence || {};
   const medicationSummary = insights?.medication_summary || {};
+  const mlPrediction = insights?.ml_risk_prediction || null;
   const frequentSymptoms = Array.isArray(insights?.frequent_symptoms) ? insights.frequent_symptoms : [];
   const vitalFlags = Array.isArray(insights?.vital_flags) ? insights.vital_flags : [];
   const recommendations = Array.isArray(insights?.recommendations) ? insights.recommendations : [];
@@ -239,6 +240,55 @@ export default function PersonalInsightsView({ authHeaders = {} }) {
         </div>
 
         <div className="space-y-6">
+          {mlPrediction && (
+            <section className="rounded-2xl border border-indigo-100 bg-indigo-50 p-6 shadow-sm">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-indigo-500">Machine Learning</p>
+                  <h3 className="mt-1 text-lg font-black text-indigo-950">Future Risk Prediction</h3>
+                  <p className="mt-1 text-xs font-bold leading-relaxed text-indigo-700">
+                    {mlPrediction.model_name} trained on stored health-history features.
+                  </p>
+                </div>
+                <span className="rounded-xl bg-white px-3 py-2 text-xs font-black uppercase tracking-widest text-indigo-700">
+                  {titleCase(mlPrediction.prediction)}
+                </span>
+              </div>
+
+              <div className="mt-5 space-y-3">
+                {(mlPrediction.probabilities || []).map((item) => (
+                  <div key={item.label}>
+                    <div className="mb-1 flex justify-between text-xs font-black text-indigo-800">
+                      <span>{titleCase(item.label)}</span>
+                      <span>{item.probability}%</span>
+                    </div>
+                    <ProgressBar value={item.probability} tone={item.label === 'high' ? 'bg-red-500' : item.label === 'moderate' ? 'bg-orange-500' : 'bg-teal-500'} />
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-5 rounded-2xl bg-white/80 p-4">
+                <div className="flex justify-between gap-3 text-xs font-black text-gray-600">
+                  <span>Training samples</span>
+                  <span>{mlPrediction.training_samples || 0}</span>
+                </div>
+                <p className="mt-2 text-[11px] font-bold leading-relaxed text-gray-500">
+                  Source: {mlPrediction.training_source}. This is prototype ML, not a medical diagnosis.
+                </p>
+              </div>
+
+              {(mlPrediction.top_factors || []).length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {mlPrediction.top_factors.map((factor) => (
+                    <span key={factor.name} className="rounded-full bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-700">
+                      {factor.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
           <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Adherence</p>
             <div className="mt-4 space-y-4">

@@ -234,8 +234,31 @@ describe('GET /api/history and /api/track', () => {
       name: 'Paracetamol',
       dosage: '500mg'
     }));
+    expect(res.body.ml_risk_prediction).toEqual(expect.objectContaining({
+      model_name: 'Personal History Risk Classifier',
+      prediction: expect.any(String),
+      confidence: expect.any(Number),
+      training_samples: expect.any(Number),
+      probabilities: expect.any(Array),
+      top_factors: expect.any(Array)
+    }));
     expect(Array.isArray(res.body.recommendations)).toBe(true);
     expect(res.body.disclaimer).toMatch(/educational decision-support/i);
+  });
+
+  test('personal risk prediction endpoint returns ML-style prediction payload', async () => {
+    const userId = `risk-ml-${Date.now()}`;
+    await request(app).post('/api/analyze').send({ userId, message: 'fever and cough' }).set('Content-Type', 'application/json');
+    await request(app).post('/api/analyze').send({ userId, message: 'dizziness', vitals: { lowBP: true } }).set('Content-Type', 'application/json');
+    await request(app).post('/api/analyze').send({ userId, message: 'chest pain and breathing difficulty' }).set('Content-Type', 'application/json');
+
+    const res = await request(app).get(`/api/personal-risk-prediction?userId=${userId}`);
+
+    expect(res.status).toBe(200);
+    expect(['low', 'moderate', 'high']).toContain(res.body.prediction);
+    expect(res.body.algorithm).toMatch(/Centroid classifier/i);
+    expect(res.body.training_samples).toBeGreaterThanOrEqual(3);
+    expect(res.body.probabilities.length).toBe(3);
   });
 });
 

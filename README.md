@@ -13,7 +13,7 @@ This system provides educational decision-support information only. It is not a 
 - AI-assisted symptom analysis with severity, risk score, confidence, disease probabilities, and emergency flags
 - Persistent health records and lab report metadata through `/api/health-records`
 - Health trends dashboard with 7/30/90 day filters, risk/severity/confidence toggle, alerts, and point details
-- Personal Health Insights dashboard using stored symptoms, vitals, records, medications, reminders, and adherence data
+- Personal Health Insights dashboard using stored symptoms, vitals, records, medications, reminders, adherence data, and an ML-based future risk classifier
 - Medication tracker with duplicate and interaction warnings
 - Smart reminders with adherence-style completion tracking
 - Doctor directory and doctor search fallback
@@ -186,6 +186,7 @@ Restart the backend after retraining.
 - `GET /api/history`
 - `GET /api/health-trends?days=7`
 - `GET /api/personal-insights`
+- `GET /api/personal-risk-prediction`
 - `GET /api/vitals`
 - `POST /api/vitals`
 - `POST /api/health-records`

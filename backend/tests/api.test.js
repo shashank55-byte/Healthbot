@@ -217,14 +217,17 @@ describe('GET /api/history and /api/track', () => {
     const userId = `insights-${Date.now()}`;
     await request(app).post('/api/analyze').send({ userId, message: 'fever and cough' }).set('Content-Type', 'application/json');
     await request(app).post('/api/analyze').send({ userId, message: 'chest pain and breathing difficulty' }).set('Content-Type', 'application/json');
+    await request(app).post('/api/analyze').send({ userId, message: 'dizziness', vitals: { lowBP: true, lowHR: true } }).set('Content-Type', 'application/json');
 
     const res = await request(app).get(`/api/personal-insights?userId=${userId}`);
 
     expect(res.status).toBe(200);
     expect(res.body.userId).toBe(userId);
     expect(res.body.summary.total_checkins).toBeGreaterThanOrEqual(2);
+    expect(res.body.summary.total_vitals).toBeGreaterThanOrEqual(1);
     expect(typeof res.body.summary.average_risk_score).toBe('number');
     expect(Array.isArray(res.body.frequent_symptoms)).toBe(true);
+    expect(res.body.vital_flags.map((item) => item.name)).toEqual(expect.arrayContaining(['low bp', 'low heart rate']));
     expect(Array.isArray(res.body.recommendations)).toBe(true);
     expect(res.body.disclaimer).toMatch(/educational decision-support/i);
   });

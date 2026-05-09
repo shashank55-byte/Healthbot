@@ -62,6 +62,12 @@ export default function PersonalInsightsView({ authHeaders = {} }) {
   const latestVitals = useMemo(() => {
     const vital = insights?.latest_vitals;
     if (!vital) return [];
+    if (Array.isArray(vital.summary_flags) && vital.summary_flags.length) {
+      return [
+        ['Source', 'Symptom check'],
+        ['Flags', vital.summary_flags.join(', ')]
+      ];
+    }
     return [
       ['BP', vital.systolic && vital.diastolic ? `${vital.systolic}/${vital.diastolic}` : null],
       ['Pulse', vital.heartRate ? `${vital.heartRate} bpm` : null],

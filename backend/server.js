@@ -71,6 +71,12 @@ const interactionSchema = new mongoose.Schema({
     normalRange: String
   }],
   recommendations: [String],
+  vitals: mongoose.Schema.Types.Mixed,
+  risk_factors: [{
+    name: String,
+    value: Number,
+    reason: String
+  }],
   emergency_flag: Boolean,
   createdAt: { type: Date, default: Date.now }
 });

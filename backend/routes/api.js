@@ -285,6 +285,8 @@ router.post('/analyze', async (req, res) => {
          diseases: data.diseases,
          lab_tests: data.lab_tests || data.labTests || [],
          recommendations: data.recommendations,
+         vitals,
+         risk_factors: data.risk_factors || [],
          emergency_flag: data.emergency_flag,
          emergency_message: data.emergency_message,
          createdAt: new Date(data.timestamp)
@@ -620,6 +622,10 @@ function countItems(values = []) {
 function vitalFlags(vital = {}) {
   const flags = [];
   const has = (value) => Number.isFinite(Number(value));
+  if (vital.highBP) flags.push('High BP');
+  if (vital.lowBP) flags.push('Low BP');
+  if (vital.highHR) flags.push('High heart rate');
+  if (vital.lowHR) flags.push('Low heart rate');
   if ((has(vital.systolic) && vital.systolic >= 140) || (has(vital.diastolic) && vital.diastolic >= 90)) flags.push('High BP');
   if ((has(vital.systolic) && vital.systolic < 90) || (has(vital.diastolic) && vital.diastolic < 60)) flags.push('Low BP');
   if (has(vital.heartRate) && vital.heartRate > 110) flags.push('High heart rate');
@@ -629,6 +635,23 @@ function vitalFlags(vital = {}) {
   if (has(vital.glucose) && vital.glucose >= 180) flags.push('High glucose');
   if (has(vital.glucose) && vital.glucose > 0 && vital.glucose < 70) flags.push('Low glucose');
   return flags;
+}
+
+function interactionVitalFlags(interaction = {}) {
+  const flags = new Set(vitalFlags(interaction.vitals || {}));
+  const factorNames = (Array.isArray(interaction.risk_factors) ? interaction.risk_factors : [])
+    .map((factor) => String(factor?.name || '').toLowerCase());
+
+  factorNames.forEach((name) => {
+    if (name.includes('elevated blood pressure') || name.includes('high blood pressure')) flags.add('High BP');
+    if (name.includes('low blood pressure')) flags.add('Low BP');
+    if (name.includes('high heart rate') || name.includes('elevated heart rate')) flags.add('High heart rate');
+    if (name.includes('low heart rate')) flags.add('Low heart rate');
+    if (name.includes('high fever') || name.includes('temperature')) flags.add('High fever');
+    if (name.includes('low oxygen')) flags.add('Low oxygen');
+  });
+
+  return Array.from(flags);
 }
 
 function summarizePersonalInsights({ interactions = [], vitals = [], records = [], medications = [], reminders = [], userId = 'demo' }) {
@@ -647,9 +670,25 @@ function summarizePersonalInsights({ interactions = [], vitals = [], records = [
   const highRiskCount = riskScores.filter((score) => score >= 71).length;
   const symptoms = countItems(normalizedInteractions.flatMap((item) => Array.isArray(item.symptoms) ? item.symptoms : []));
 
-  const vitalFlagItems = normalizedVitals.flatMap((vital) => vitalFlags(vital).map((flag) => ({ flag, date: dateValue(vital).toISOString() })));
+  const interactionVitalEvents = normalizedInteractions
+    .map((interaction) => ({
+      source: 'symptom_check',
+      date: dateValue(interaction).toISOString(),
+      flags: interactionVitalFlags(interaction)
+    }))
+    .filter((event) => event.flags.length > 0);
+  const vitalFlagItems = [
+    ...normalizedVitals.flatMap((vital) => vitalFlags(vital).map((flag) => ({ flag, date: dateValue(vital).toISOString(), source: 'vitals_tracking' }))),
+    ...interactionVitalEvents.flatMap((event) => event.flags.map((flag) => ({ flag, date: event.date, source: event.source })))
+  ];
   const vitalFlagCounts = countItems(vitalFlagItems.map((item) => item.flag));
-  const latestVitals = [...normalizedVitals].sort((a, b) => dateValue(b) - dateValue(a))[0] || null;
+  const latestTrackedVitals = [...normalizedVitals].sort((a, b) => dateValue(b) - dateValue(a))[0] || null;
+  const latestInteractionVitals = [...interactionVitalEvents].sort((a, b) => new Date(b.date) - new Date(a.date))[0] || null;
+  const latestVitals = latestTrackedVitals || (latestInteractionVitals ? {
+    source: 'symptom_check',
+    date: latestInteractionVitals.date,
+    summary_flags: latestInteractionVitals.flags
+  } : null);
 
   const abnormalLabs = normalizedRecords.flatMap((record) => {
     const direct = Array.isArray(record.abnormalValues) ? record.abnormalValues : [];
@@ -706,7 +745,7 @@ function summarizePersonalInsights({ interactions = [], vitals = [], records = [
       latest_risk_score: latestRisk,
       emergency_flags: emergencyCount,
       high_risk_checkins: highRiskCount,
-      total_vitals: normalizedVitals.length,
+      total_vitals: normalizedVitals.length + interactionVitalEvents.length,
       abnormal_vital_flags: vitalFlagItems.length,
       total_records: normalizedRecords.length,
       abnormal_labs: abnormalLabs.length,

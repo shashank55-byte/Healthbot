@@ -21,6 +21,7 @@ const parameterStatusStyles = {
 
 const recordFilters = ['All', 'Lab Reports', 'Prescriptions', 'Imaging', 'Abnormal Values', 'High Risk', 'Recently Uploaded'];
 const STANDARD_MEDICAL_DISCLAIMER = 'This system provides educational decision-support information only. It is not a medical diagnosis and does not replace consultation with a licensed clinician. In emergencies, seek immediate medical help.';
+const TEXT_READABLE_TYPES = ['txt', 'csv', 'json'];
 
 function formatUploadDate() {
   return new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -327,10 +328,28 @@ export default function HealthRecordsView({ records = [], onUpload, onDelete, an
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e) => {
+  const readFileText = (file) => new Promise((resolve) => {
+    const extension = file.name.split('.').pop()?.toLowerCase() || '';
+    const isReadable = TEXT_READABLE_TYPES.includes(extension) || /^text\//.test(file.type);
+    if (!isReadable) {
+      resolve({ extractedText: '', contentExtractionStatus: 'OCR not configured for this file type' });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => resolve({
+      extractedText: String(reader.result || '').slice(0, 25000),
+      contentExtractionStatus: 'Readable text extracted'
+    });
+    reader.onerror = () => resolve({ extractedText: '', contentExtractionStatus: 'Could not read file text' });
+    reader.readAsText(file);
+  });
+
+  const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const textResult = await readFileText(file);
     const fileType = file.name.split('.').pop()?.toUpperCase() || 'FILE';
     const uploadDate = formatUploadDate();
     const fileSize = formatFileSize(file.size);
@@ -346,7 +365,9 @@ export default function HealthRecordsView({ records = [], onUpload, onDelete, an
       fileType,
       documentType: detectDocumentType({ name: file.name }),
       status: 'Pending',
-      url: URL.createObjectURL(file)
+      url: URL.createObjectURL(file),
+      extractedText: textResult.extractedText,
+      contentExtractionStatus: textResult.contentExtractionStatus
     };
 
     onUpload(newRecord);
@@ -477,6 +498,11 @@ export default function HealthRecordsView({ records = [], onUpload, onDelete, an
                         <p className="text-xs font-medium text-gray-500 mt-1 max-w-2xl line-clamp-2">
                           {analysis?.summary || 'Pending analysis. Upload processing will add a clinical support summary.'}
                         </p>
+                        {rec.contentExtractionStatus && (
+                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">
+                            {rec.contentExtractionStatus}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="flex flex-wrap justify-end gap-2">

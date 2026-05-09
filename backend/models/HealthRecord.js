@@ -10,6 +10,7 @@ const healthRecordSchema = new mongoose.Schema({
   name: String,
   fileType: String,
   documentType: String,
+  contentExtractionStatus: String,
   uploadDate: String,
   uploadedAt: {
     type: Date,

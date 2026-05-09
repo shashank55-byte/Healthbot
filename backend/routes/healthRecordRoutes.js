@@ -33,6 +33,7 @@ function normalizeRecord(input, userId) {
     name: input.name || input.fileName || 'Uploaded health record',
     fileType: input.fileType || input.type || 'FILE',
     documentType: input.documentType || 'General Medical Document',
+    contentExtractionStatus: input.contentExtractionStatus || input.analysis?.extraction?.ocrStatus || '',
     uploadDate: input.uploadDate || input.date || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     uploadedAt: input.uploadedAt ? new Date(input.uploadedAt) : new Date(),
     fileSize: input.fileSize || input.size || '',

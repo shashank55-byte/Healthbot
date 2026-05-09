@@ -15,6 +15,10 @@ function lowerName(record) {
   return String(record?.name || '').toLowerCase();
 }
 
+function normalizeText(value) {
+  return String(value || '').replace(/\r/g, '\n');
+}
+
 export function detectDocumentType(record) {
   const name = lowerName(record);
 
@@ -59,6 +63,116 @@ function parameter({
     clinicalNote,
     evidence
   };
+}
+
+function statusFromRange(rawValue, normalLow = null, normalHigh = null) {
+  const value = Number(String(rawValue).replace(/,/g, ''));
+  if (!Number.isFinite(value)) return { status: 'Normal', severity: 'low' };
+  if (normalHigh !== null && value > normalHigh) {
+    const ratio = value / normalHigh;
+    return { status: 'High', severity: ratio >= 1.35 ? 'high' : 'moderate' };
+  }
+  if (normalLow !== null && value < normalLow) {
+    const ratio = normalLow ? value / normalLow : 1;
+    return { status: 'Low', severity: ratio <= 0.75 ? 'moderate' : 'low' };
+  }
+  return { status: 'Normal', severity: 'low' };
+}
+
+function extractedParameter({ text, aliases, name, unit, normalRange, normalLow = null, normalHigh = null, clinicalHigh, clinicalLow }) {
+  const aliasPattern = aliases.map((alias) => alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  const regex = new RegExp(`(?:${aliasPattern})\\s*[:=,-]?\\s*([0-9]+(?:,[0-9]{3})*(?:\\.\\d+)?)\\s*(${unit ? unit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '[a-zA-Z/%]+'})?`, 'i');
+  const match = normalizeText(text).match(regex);
+  if (!match) return null;
+
+  const rawValue = Number(String(match[1]).replace(/,/g, ''));
+  if (!Number.isFinite(rawValue)) return null;
+  const result = statusFromRange(rawValue, normalLow, normalHigh);
+  const clinicalNote = result.status === 'High'
+    ? clinicalHigh || 'Above the configured reference range.'
+    : result.status === 'Low'
+      ? clinicalLow || 'Below the configured reference range.'
+      : 'Within configured reference range.';
+
+  return parameter({
+    name,
+    value: rawValue,
+    unit,
+    normalRange,
+    normalLow,
+    normalHigh,
+    status: result.status,
+    severity: result.severity,
+    clinicalNote,
+    evidence: 'Extracted from readable uploaded file text'
+  });
+}
+
+function parseTextLabParameters(text) {
+  if (!text || String(text).trim().length < 3) return [];
+
+  const definitions = [
+    {
+      name: 'Hemoglobin',
+      aliases: ['hemoglobin', 'hb'],
+      unit: 'g/dL',
+      normalRange: '12.0-15.5 g/dL',
+      normalLow: 12,
+      normalHigh: 15.5,
+      clinicalHigh: 'Hemoglobin is above the configured reference range.',
+      clinicalLow: 'Hemoglobin is below the configured reference range.'
+    },
+    {
+      name: 'WBC Count',
+      aliases: ['wbc count', 'wbc', 'white blood cell count'],
+      unit: '/uL',
+      normalRange: '4,000-11,000 /uL',
+      normalLow: 4000,
+      normalHigh: 11000,
+      clinicalHigh: 'WBC elevation may align with infection or inflammation.',
+      clinicalLow: 'Low WBC can require clinical review depending on context.'
+    },
+    {
+      name: 'Blood Sugar',
+      aliases: ['blood sugar', 'glucose', 'fasting glucose', 'fbs'],
+      unit: 'mg/dL',
+      normalRange: '70-100 mg/dL',
+      normalLow: 70,
+      normalHigh: 100,
+      clinicalHigh: 'Elevated glucose marker; correlate with fasting status or HbA1c.',
+      clinicalLow: 'Low glucose can require prompt review if symptoms are present.'
+    },
+    {
+      name: 'Cholesterol',
+      aliases: ['cholesterol', 'total cholesterol'],
+      unit: 'mg/dL',
+      normalRange: '< 200 mg/dL',
+      normalHigh: 200,
+      clinicalHigh: 'Above desirable range; cardiovascular risk review is reasonable.'
+    },
+    {
+      name: 'Creatinine',
+      aliases: ['creatinine'],
+      unit: 'mg/dL',
+      normalRange: '0.6-1.2 mg/dL',
+      normalLow: 0.6,
+      normalHigh: 1.2,
+      clinicalHigh: 'Renal marker elevation should be reviewed with prior baseline.'
+    },
+    {
+      name: 'Vitamin D',
+      aliases: ['vitamin d', '25-oh vitamin d', '25 hydroxy vitamin d'],
+      unit: 'ng/mL',
+      normalRange: '30-100 ng/mL',
+      normalLow: 30,
+      normalHigh: 100,
+      clinicalLow: 'Low vitamin D is common and usually reviewed non-urgently.'
+    }
+  ];
+
+  return definitions
+    .map((definition) => extractedParameter({ text, ...definition }))
+    .filter(Boolean);
 }
 
 function calculateReportRiskScore(parameters = [], documentType = DOC_TYPES.GENERAL) {
@@ -181,6 +295,42 @@ function buildAnalysis({ documentType, name, summary, parameters, nextAction }) 
       method: 'Deterministic mock extraction and weighted risk scoring',
       realOcrHook: 'Pass OCR text and extracted entities into buildAnalysis-compatible adapters',
       limitations: 'Mock values are generated for UI/demo workflow and are not medical facts.'
+    }
+  };
+}
+
+function textContentAnalysis(record, documentType) {
+  const extractedParameters = parseTextLabParameters(record.extractedText);
+  if (!extractedParameters.length) return null;
+
+  const analysis = buildAnalysis({
+    documentType,
+    name: lowerName(record),
+    summary: 'Readable report text detected. The system extracted common lab values from the uploaded file text and compared them with configured reference ranges.',
+    parameters: extractedParameters,
+    nextAction: 'Use this as a screening summary only and confirm all values against the original report with a clinician.'
+  });
+
+  return {
+    ...analysis,
+    extraction: {
+      ...analysis.extraction,
+      source: ANALYSIS_SOURCE.OCR,
+      ocrStatus: 'Text file parsed',
+      confidence: 88,
+      engine: 'text-lab-parser-v1',
+      note: 'Values were parsed from readable file text, not from image/PDF OCR.'
+    },
+    auditTrail: [
+      'Read text content from uploaded file',
+      'Matched known lab parameter names',
+      'Compared values with configured reference ranges',
+      'Calculated report risk from abnormal severity weights'
+    ],
+    modelTransparency: {
+      ...analysis.modelTransparency,
+      method: 'Text extraction with deterministic lab range comparison',
+      limitations: 'Only readable text/CSV-style files are parsed. Scanned images and PDFs still need OCR integration.'
     }
   };
 }
@@ -346,7 +496,9 @@ export function analyzeHealthRecord(record) {
   const name = lowerName(record);
   let analysis;
 
-  if (documentType === DOC_TYPES.LAB) analysis = labAnalysis(name);
+  const contentAnalysis = textContentAnalysis(record, documentType);
+  if (contentAnalysis) analysis = contentAnalysis;
+  else if (documentType === DOC_TYPES.LAB) analysis = labAnalysis(name);
   else if (documentType === DOC_TYPES.PRESCRIPTION) analysis = prescriptionAnalysis();
   else if (documentType === DOC_TYPES.IMAGING) analysis = imagingAnalysis(name);
   else analysis = generalAnalysis();

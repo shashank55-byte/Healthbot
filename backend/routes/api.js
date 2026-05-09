@@ -9,6 +9,7 @@ const modelEvaluationService = require('../services/modelEvaluationService');
 const modelInfoService = require('../services/modelInfoService');
 const hybridPredictionService = require('../services/hybridPredictionService');
 const chatSupportService = require('../services/chatSupportService');
+const medicationService = require('../services/medicationService');
 const { spawn } = require('child_process');
 const path = require('path');
 
@@ -703,6 +704,7 @@ function summarizePersonalInsights({ interactions = [], vitals = [], records = [
   const adherenceEntries = normalizedMedications.flatMap((medication) => Array.isArray(medication.adherence) ? medication.adherence : []);
   const taken = adherenceEntries.filter((item) => item.status === 'taken').length;
   const medicationAdherence = adherenceEntries.length ? Math.round((taken / adherenceEntries.length) * 100) : null;
+  const activeMedications = normalizedMedications.filter((item) => String(item.status || 'active').toLowerCase() !== 'completed');
   const reminderCompleted = normalizedReminders.filter((item) => item.status === 'Completed').length;
   const reminderMissed = normalizedReminders.filter((item) => item.status === 'Missed').length;
   const reminderAdherence = (reminderCompleted + reminderMissed) ? Math.round((reminderCompleted / (reminderCompleted + reminderMissed)) * 100) : null;
@@ -749,7 +751,7 @@ function summarizePersonalInsights({ interactions = [], vitals = [], records = [
       abnormal_vital_flags: vitalFlagItems.length,
       total_records: normalizedRecords.length,
       abnormal_labs: abnormalLabs.length,
-      active_medications: normalizedMedications.filter((item) => item.status !== 'completed').length,
+      active_medications: activeMedications.length,
       total_reminders: normalizedReminders.length,
       medication_adherence: medicationAdherence,
       reminder_adherence: reminderAdherence
@@ -777,6 +779,23 @@ function summarizePersonalInsights({ interactions = [], vitals = [], records = [
       missed_reminders: reminderMissed,
       completed_reminders: reminderCompleted
     },
+    medication_summary: {
+      active_count: activeMedications.length,
+      total_count: normalizedMedications.length,
+      adherence_logs: adherenceEntries.length,
+      recent_medications: activeMedications
+        .sort((a, b) => dateValue(b) - dateValue(a))
+        .slice(0, 5)
+        .map((medication) => ({
+          id: String(medication._id || medication.id || ''),
+          name: medication.name || 'Medication',
+          dosage: medication.dosage || '',
+          frequency: medication.frequency || '',
+          status: medication.status || 'active',
+          adherence_logs: Array.isArray(medication.adherence) ? medication.adherence.length : 0,
+          created_at: dateValue(medication).toISOString()
+        }))
+    },
     recommendations,
     disclaimer: STANDARD_MEDICAL_DISCLAIMER
   };
@@ -792,14 +811,15 @@ router.get('/personal-insights', async (req, res) => {
       Interaction.find({ userId }).sort({ createdAt: -1 }).limit(100),
       Vital ? Vital.find({ userId }).sort({ date: -1, createdAt: -1 }).limit(100) : [],
       HealthRecord ? HealthRecord.find({ userId }).sort({ createdAt: -1 }).limit(50) : [],
-      Medication ? Medication.find({ userId }).sort({ createdAt: -1 }).limit(50) : [],
+      medicationService.getMedications(req.models, userId),
       Reminder ? Reminder.find({ userId }).sort({ date: -1, createdAt: -1 }).limit(100) : []
     ]);
 
     return res.json(summarizePersonalInsights({ interactions, vitals, records, medications, reminders, userId }));
   } catch (error) {
     const interactions = history.filter((item) => (item.userId || 'demo') === userId);
-    return res.json(summarizePersonalInsights({ interactions, vitals: [], records: [], medications: [], reminders: [], userId }));
+    const medications = await medicationService.getMedications(req.models, userId).catch(() => []);
+    return res.json(summarizePersonalInsights({ interactions, vitals: [], records: [], medications, reminders: [], userId }));
   }
 });
 

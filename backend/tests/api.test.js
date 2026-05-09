@@ -218,6 +218,7 @@ describe('GET /api/history and /api/track', () => {
     await request(app).post('/api/analyze').send({ userId, message: 'fever and cough' }).set('Content-Type', 'application/json');
     await request(app).post('/api/analyze').send({ userId, message: 'chest pain and breathing difficulty' }).set('Content-Type', 'application/json');
     await request(app).post('/api/analyze').send({ userId, message: 'dizziness', vitals: { lowBP: true, lowHR: true } }).set('Content-Type', 'application/json');
+    await request(app).post('/api/medications').send({ userId, name: 'Paracetamol', dosage: '500mg', frequency: '2 times/day' }).set('Content-Type', 'application/json');
 
     const res = await request(app).get(`/api/personal-insights?userId=${userId}`);
 
@@ -228,6 +229,11 @@ describe('GET /api/history and /api/track', () => {
     expect(typeof res.body.summary.average_risk_score).toBe('number');
     expect(Array.isArray(res.body.frequent_symptoms)).toBe(true);
     expect(res.body.vital_flags.map((item) => item.name)).toEqual(expect.arrayContaining(['low bp', 'low heart rate']));
+    expect(res.body.summary.active_medications).toBeGreaterThanOrEqual(1);
+    expect(res.body.medication_summary.recent_medications[0]).toEqual(expect.objectContaining({
+      name: 'Paracetamol',
+      dosage: '500mg'
+    }));
     expect(Array.isArray(res.body.recommendations)).toBe(true);
     expect(res.body.disclaimer).toMatch(/educational decision-support/i);
   });

@@ -54,10 +54,12 @@ export default function PersonalInsightsView({ authHeaders = {} }) {
   const summary = insights?.summary || {};
   const recordSummary = insights?.record_summary || {};
   const adherence = insights?.adherence || {};
+  const medicationSummary = insights?.medication_summary || {};
   const frequentSymptoms = Array.isArray(insights?.frequent_symptoms) ? insights.frequent_symptoms : [];
   const vitalFlags = Array.isArray(insights?.vital_flags) ? insights.vital_flags : [];
   const recommendations = Array.isArray(insights?.recommendations) ? insights.recommendations : [];
   const recentRecords = Array.isArray(recordSummary.recent_records) ? recordSummary.recent_records : [];
+  const recentMedications = Array.isArray(medicationSummary.recent_medications) ? medicationSummary.recent_medications : [];
 
   const latestVitals = useMemo(() => {
     const vital = insights?.latest_vitals;
@@ -243,9 +245,24 @@ export default function PersonalInsightsView({ authHeaders = {} }) {
               <div>
                 <div className="mb-2 flex justify-between text-xs font-black text-gray-600">
                   <span>Medication</span>
-                  <span>{percent(adherence.medication_adherence)}</span>
+                  <span>{medicationSummary.active_count || 0} active</span>
                 </div>
-                <ProgressBar value={adherence.medication_adherence || 0} tone="bg-teal-500" />
+                <ProgressBar value={medicationSummary.active_count ? 100 : 0} tone="bg-teal-500" />
+                <p className="mt-2 text-[11px] font-bold text-gray-500">
+                  Adherence: {percent(adherence.medication_adherence)} from {medicationSummary.adherence_logs || 0} dose log{medicationSummary.adherence_logs === 1 ? '' : 's'}.
+                </p>
+                {recentMedications.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {recentMedications.slice(0, 3).map((medication) => (
+                      <div key={medication.id || medication.name} className="rounded-xl bg-gray-50 px-3 py-2">
+                        <p className="truncate text-xs font-black text-gray-900">{medication.name}</p>
+                        <p className="text-[10px] font-bold text-gray-400">
+                          {[medication.dosage, medication.frequency].filter(Boolean).join(' | ') || 'No schedule added'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div>
                 <div className="mb-2 flex justify-between text-xs font-black text-gray-600">
